@@ -24,28 +24,26 @@ contract Lottery is VRFConsumerBaseV2 {
     uint32 callbackGasLimit = 1000000;
     uint16 requestConfirmations = 3;
     uint32 numWords = 2;
-    bytes32 public keyhash;
+    address _vrfCoordinator = 0x6168499c0cFfCaCD319c818142124B7A15E857ab;
+    address _link = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709;
+    bytes32 _keyHash =
+        0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc;
+    address priceFeedAddress = 0x8A753747A1Fa494EC906cE90E9f37563A8AF630e;
     uint256 public fee;
 
-    uint256[] public s_randomWords; 
+    uint256[] public s_randomWords;
     uint256 public s_requestId;
     address s_owner;
 
     address payable public reccentWinners;
     event requestRandomWords(uint256 s_requestId);
 
-    constructor(
-        address _priceFeedAddress,
-        address _vrfCoordinator,
-        address _link,
-        bytes32 _keyhash
-    ) VRFConsumerBaseV2(_vrfCoordinator) {
+    constructor() VRFConsumerBaseV2(_vrfCoordinator) {
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         LINKTOKEN = LinkTokenInterface(_link);
         usdEntryFee = 50;
-        ethUsdPriceFeed = AggregatorV3Interface(_priceFeedAddress);
+        ethUsdPriceFeed = AggregatorV3Interface(priceFeedAddress);
         lottery_state = LOTTERY_STATE.CLOSED;
-        keyhash = _keyhash;
         s_owner = msg.sender;
     }
 
@@ -83,7 +81,7 @@ contract Lottery is VRFConsumerBaseV2 {
     function endLottery() public onlyOwner {
         lottery_state = LOTTERY_STATE.CALCULATING_WINNER;
         s_requestId = COORDINATOR.requestRandomWords(
-            keyhash,
+            _keyHash,
             s_subscriptionId,
             requestConfirmations,
             callbackGasLimit,
